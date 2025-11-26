@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>線上塔羅抽籤</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+  margin: 0;
+  min-height:100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #fce4ec, #311b92);
+  color: #222;
+}
+
+    .app {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 24px 20px;
+      max-width: 480px;
+      width: 92%;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(10px);
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 4px;
+      font-size: 1.5rem;
+      letter-spacing: 0.1em;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .question-input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+
+    .btn-area {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-main {
+      background: linear-gradient(135deg, #7b1fa2, #ef5350);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(123, 31, 162, 0.4);
+    }
+
+    .btn-main:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(123, 31, 162, 0.5);
+    }
+
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #444;
+    }
+
+    .btn-secondary:hover {
+      background: #eeeeee;
+    }
+
+    .card-area {
+      margin-top: 12px;
+      padding: 14px 12px;
+      border-radius: 12px;
+      background: #faf5ff;
+      border: 1px solid #e0d7ff;
+      min-height: 140px;
+    }
+
+    .card-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+
+    .card-orientation {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .card-meaning {
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .question-display {
+      font-size: 0.75rem;
+      color: #999;
+      margin-bottom: 4px;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: #999;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        padding: 18px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="title">線上塔羅抽籤</div>
+    <div class="subtitle">在心中默念問題,準備好後抽一張牌 ✨</div>
+
+    <input
+      id="questionInput"
+      class="question-input"
+      type="text"
+      placeholder="(可選)輸入你想問的問題,例如:我未來半年的感情發展?"
+    />
+
+    <div class="btn-area">
+      <button class="btn-main" id="drawBtn">抽一張牌</button>
+      <button class="btn-secondary" id="resetBtn">清除結果</button>
+    </div>
+
+    <div class="card-area" id="resultArea">
+      <div style="font-size:0.9rem; color:#777;">
+        還沒有抽牌,先安靜幾秒,專注在你的問題上,再按「抽一張牌」喔。
+      </div>
+    </div>
+
+    <div class="hint">
+      本頁面僅作為自我覺察與娛樂參考,真正的選擇還是掌握在你自己手中 💜
+    </div>
+  </div>
+
+  <script>
+    // ===== 範例牌組:先放幾張大牌,你可以依樣畫葫蘆補滿 =====
+    const tarotDeck = [
+      {
+        name: "愚者(0 The Fool)",
+        meaningUp: "新的開始、冒險、勇敢踏出舒適圈、相信直覺與宇宙的安排。",
+        meaningRev: "衝動、沒計畫、逃避現實、太過天真,需要為自己負責。"
+      },
+      {
+        name: "魔術師(I The Magician)",
+        meaningUp: "掌握資源、溝通能力強、行動力高,是適合開始實作的時機。",
+        meaningRev: "能量分散、表裡不一、技巧被用在不對的地方,需回到初心。"
+      },
+      {
+        name: "女祭司(II The High Priestess)",
+        meaningUp: "直覺、潛意識、暫時觀察而非行動,信任自己的內在聲音。",
+        meaningRev: "情緒混亂、過度壓抑、看不清真相,需要更誠實面對自己。"
+      },
+      {
+        name: "女皇(III The Empress)",
+        meaningUp: "豐盛、滋養、愛與被愛、關係中的溫柔與照顧,適合培養感情。",
+        meaningRev: "付出失衡、被依賴、過度寵溺或委屈自己,需要重新設界線。"
+      },
+      {
+        name: "皇帝(IV The Emperor)",
+        meaningUp: "穩定、責任、結構、實際行動與承諾,適合規劃長期目標。",
+        meaningRev: "控制慾、固執、權力失衡,或是逃避應負的責任。"
+      },
+      {
+        name: "戀人(VI The Lovers)",
+        meaningUp: "選擇、連結、互相吸引、價值觀交流,是重要關係與決定的時刻。",
+        meaningRev: "猶豫不決、三心二意、關係不平衡,需要先搞清楚自己要什麼。"
+      },
+      {
+        name: "戰車(VII The Chariot)",
+        meaningUp: "意志力、前進、突破阻礙,專注目標就能穩定往前。",
+        meaningRev: "方向搖擺、心被拉扯、行動力下降,需要重新調整步調與目標。"
+      },
+      {
+        name: "力量(VIII Strength)",
+        meaningUp: "溫柔而堅定的力量、自我控制、勇敢面對恐懼與不安。",
+        meaningRev: "自信不足、情緒失控、太勉強自己,需要學會溫柔對待自己。"
+      },
+      {
+        name: "隱者(IX The Hermit)",
+        meaningUp: "沉澱、獨處、內在探索,先停下來把事情想清楚。",
+        meaningRev: "過度退縮、與外界隔絕、鑽牛角尖,需要適度與他人連結。"
+      },
+      {
+        name: "命運之輪(X Wheel of Fortune)",
+        meaningUp: "機運、轉折點、情勢變動,是順勢而為的好時機。",
+        meaningRev: "延遲、卡關、時機未到,先修正自己的模式,等待下一輪。"
+      }
+      // 你可以在這裡繼續加入更多牌...
+    ];
+
+    const drawBtn = document.getElementById("drawBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const resultArea = document.getElementById("resultArea");
+    const questionInput = document.getElementById("questionInput");
+
+    function drawTarot() {
+      if (tarotDeck.length === 0) return;
+
+      // 抽一張隨機牌
+      const idx = Math.floor(Math.random() * tarotDeck.length);
+      const card = tarotDeck[idx];
+
+      // 50% 正位 / 逆位
+      const isReversed = Math.random() < 0.5;
+      const orientationText = isReversed ? "逆位(Upside Down)" : "正位(Upright)";
+      const meaning = isReversed ? card.meaningRev : card.meaningUp;
+
+      const questionText = questionInput.value.trim();
+
+      resultArea.innerHTML = `
+        ${
+          questionText
+            ? `<div class="question-display">你的問題:${questionText}</div>`
+            : ""
+        }
+        <div class="card-name">${card.name}</div>
+        <div class="card-orientation">${orientationText}</div>
+        <div class="card-meaning">${meaning}</div>
+      `;
+    }
+
+    function resetResult() {
+      questionInput.value = "";
+      resultArea.innerHTML = `
+        <div style="font-size:0.9rem; color:#777;">
+          已清除結果。請在心中想好新的問題,準備好後再按「抽一張牌」。
+        </div>
+      `;
+    }
+
+    drawBtn.addEventListener("click", drawTarot);
+    resetBtn.addEventListener("click", resetResult);
+  </script>
+</body>
+</html>
